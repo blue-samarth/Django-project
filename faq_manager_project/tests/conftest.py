@@ -1,5 +1,6 @@
 import pytest
 from django.core.cache import cache
+from django.conf import settings
 
 
 pytest_plugins = [
@@ -10,3 +11,11 @@ pytest_plugins = [
 def clear_cache():
     """It would automatically clear the cache"""
     cache.clear()
+
+
+@pytest.fixture(scope='session')
+def django_db_setup():
+    settings.DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',  # Use SQLite for tests
+        'NAME': ':memory:',
+    }
