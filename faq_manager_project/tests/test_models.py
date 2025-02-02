@@ -1,6 +1,6 @@
 import pytest
 from faq_manager.models import FAQ
-
+from django.core.exceptions import ValidationError
 
 @pytest.mark.django_db
 def test_faq_creation():
@@ -47,3 +47,20 @@ def test_get_translated_question():
     assert faq.get_translated_question('bn') == "Django কি?"
     assert faq.get_translated_question('en') == "What is Django?"
 
+def test_faq_required_fields():
+    """Test FAQ model validation for empty fields"""
+    with pytest.raises(ValidationError) as e:
+        faq = FAQ(question="", answer="Valid answer")
+        faq.full_clean()  
+    assert "Question (English) cannot be empty." in str(e.value)
+
+    with pytest.raises(ValidationError) as e:
+        faq = FAQ(question="Valid question", answer="")
+        faq.full_clean()  
+    assert "Answer (English) cannot be empty." in str(e.value)
+
+@pytest.mark.django_db
+def test_faq_valid_instance():
+    """Test valid FAQ instance passes validation"""
+    faq = FAQ(question="What is Django?", answer="Django is a web framework.")
+    faq.full_clean()  

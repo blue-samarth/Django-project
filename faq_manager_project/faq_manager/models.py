@@ -3,9 +3,13 @@ from googletrans import Translator
 import logging
 
 from django.db import models
+from django.core.exceptions import ValidationError
 
-logger : logging.Logger = logging.getLogger(__name__)
+
+logger: logging.Logger = logging.getLogger(__name__)
 # Create your models here.
+
+
 class FAQ(models.Model):
     """
     FAQ (Frequently Asked Questions) model that supports multilingual content.
@@ -25,7 +29,7 @@ class FAQ(models.Model):
     class Meta:
         """
         Metadata class for FAQ model.
-        
+
         Attributes:
             verbose_name (str): Human-readable singular name ('FAQ')
             verbose_name_plural (str): Human-readable plural name ('FAQs')
@@ -35,31 +39,51 @@ class FAQ(models.Model):
         verbose_name_plural = "FAQs"
         ordering = ['-created_at']
 
-
-    question : models.TextField = models.TextField(help_text = "Question in English")
-    answer : RichTextField = RichTextField() # as we are required WYSIWYG editor support
-    question_hi : models.TextField = models.TextField(blank=True, null=True, help_text="Hindi translation") 
-    question_bn : models.TextField = models.TextField(blank=True, null=True, help_text="Bengali translation")
+    question: models.TextField = models.TextField(help_text="Question in English")
+    answer: RichTextField = RichTextField()  # as we are required WYSIWYG editor support
+    question_hi: models.TextField = models.TextField(blank=True, null=True, help_text="Hindi translation")
+    question_bn: models.TextField = models.TextField(blank=True, null=True, help_text="Bengali translation")
 
     created_at = models.DateTimeField(auto_now_add=True)
- 
+
+    def clean(self) -> None:
+        """
+        This method checks whether the `question` and `answer` fields are not empty.
+        If any of these fields are empty or contain only whitespace, it raises a
+        `ValidationError` with appropriate error messages.
+
+        Raises:
+            ValidationError: If `question` or `answer` is empty.
+        """
+        errors = {}
+
+        if not self.question or not self.question.strip():
+            errors['question'] = ("Question (English) cannot be empty.")
+
+        if not self.answer or not self.answer.strip():
+            errors['answer'] = ("Answer (English) cannot be empty.")
+
+        if errors:
+            raise ValidationError(errors)
+
     def get_translated_question(self, lang: str = 'en') -> str:
         """Get question in specified language, fallback to English"""
-        if lang == "en" : return self.question
+        if lang == "en":
+            return self.question
         try:
-            translated : str =  getattr(self, f'question_{lang}', self.question)
+            translated: str = getattr(self, f'question_{lang}', self.question)
             return translated if translated else self.question
         except AttributeError:
             return self.question
-    
+
     def save(self, *args, **kwargs) -> None:
         if not self.pk and self.question:
             translator = Translator()
             for lang in ['hi', 'bn']:
-                feild_name : str = f'question_{lang}'
-                if getattr(self, feild_name) is None :  # Only translate if the field is empty
+                feild_name: str = f'question_{lang}'
+                if getattr(self, feild_name) is None:  # Only translate if the field is empty
                     try:
-                        translated : Translator.translate = translator.translate(self.question, dest=lang)
+                        translated: Translator.translate = translator.translate(self.question, dest=lang)
                         setattr(self, f'question_{lang}', translated.text)
                     except Exception as e:
                         logger.error(f"Translation failed for {lang} : {str(e)}")

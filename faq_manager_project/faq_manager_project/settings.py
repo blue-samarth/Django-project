@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     "django_redis",
     "googletrans",
     # "pytest",
-    # "pytest-asyncio"
+    # "pytest-asyncio",
 
     # The app
     "faq_manager"
@@ -88,6 +88,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        'ATOMIC_REQUESTS': True,
     }
 }
 
@@ -133,12 +134,12 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CACHES : dict = {
-    "default" :{
-        'BACKEND' : "django_redis.cache.RedisCache",
+CACHES: dict = {
+    "default": {
+        'BACKEND': "django_redis.cache.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379/1",
-        "OPTIONS" :{
-            "CLIENT_CLASS" : "django_redis.client.DefaultClient"
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient"
         }
     }
 }

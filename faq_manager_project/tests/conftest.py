@@ -19,3 +19,7 @@ def django_db_setup():
         'ENGINE': 'django.db.backends.sqlite3',  # Use SQLite for tests
         'NAME': ':memory:',
     }
+
+@pytest.fixture(autouse=True)
+def enable_db_access_for_all_tests(db):
+    pass
