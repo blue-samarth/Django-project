@@ -42,7 +42,9 @@ INSTALLED_APPS = [
     "ckeditor",
     "rest_framework",
     "django_redis",
-    "pytest",
+    "googletrans",
+    # "pytest",
+    # "pytest-asyncio"
 
     # The app
     "faq_manager"
